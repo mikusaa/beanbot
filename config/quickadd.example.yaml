@@ -1,0 +1,88 @@
+# Copy this file to config/quickadd.yaml and edit it for your own ledger.
+
+payment_accounts:
+  cash: Assets:Cash
+  wallet: Assets:Digital:Wallet
+  credit card: Liabilities:CreditCard:Default
+  现金: Assets:Cash
+  钱包: Assets:Digital:Wallet
+  信用卡: Liabilities:CreditCard:Default
+
+payment_account_choices:
+  card:
+    - label: Main credit card
+      account: Liabilities:CreditCard:Default
+    - label: Backup credit card
+      account: Liabilities:CreditCard:Backup
+  卡:
+    - label: 主信用卡
+      account: Liabilities:CreditCard:Default
+    - label: 备用信用卡
+      account: Liabilities:CreditCard:Backup
+
+expense_keywords:
+  Expenses:Food:Meals:
+    - meal
+    - lunch
+    - dinner
+    - breakfast
+    - 吃饭
+    - 午饭
+    - 晚饭
+    - 早饭
+  Expenses:Food:Drinks:
+    - coffee
+    - tea
+    - drink
+    - 咖啡
+    - 奶茶
+    - 饮料
+  Expenses:Groceries:
+    - grocery
+    - supermarket
+    - fruit
+    - 买菜
+    - 超市
+    - 水果
+  Expenses:Transport:Taxi:
+    - taxi
+    - ride
+    - 打车
+  Expenses:Transport:Public:
+    - subway
+    - bus
+    - 地铁
+    - 公交
+  Expenses:Household:
+    - household
+    - daily goods
+    - 日用品
+  Expenses:Entertainment:
+    - movie
+    - game
+    - 电影
+    - 游戏
+
+narration_stopwords:
+  - meal
+  - lunch
+  - dinner
+  - breakfast
+  - 吃饭
+  - 午饭
+  - 晚饭
+  - 早饭
+  - 打车
+  - 地铁
+  - 公交
+
+payee_rules:
+  - keywords: [Coffee Shop, coffee shop, 咖啡店]
+    payee: Coffee Shop
+    expense_account: Expenses:Food:Drinks
+  - keywords: [Supermarket, supermarket, 超市]
+    payee: Supermarket
+    expense_account: Expenses:Groceries
+  - keywords: [Taxi, taxi, 打车]
+    payee: Taxi
+    expense_account: Expenses:Transport:Taxi

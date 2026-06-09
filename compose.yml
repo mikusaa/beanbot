@@ -1,0 +1,34 @@
+services:
+  beanbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: beanbot
+    volumes:
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/main.bean:/books/main.bean:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/config:/books/config:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/opening:/books/opening:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/prices:/books/prices:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/investments:/books/investments:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/installments:/books/installments:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/recurring:/books/recurring:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/data:/books/data:ro
+      - ${BEANCOUNT_BOOKS_DIR:?Set BEANCOUNT_BOOKS_DIR in .env}/tgbot:/books/tgbot:rw
+      - ./config/quickadd.yaml:/config/quickadd.yaml:ro
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_ALLOWED_USER_IDS=${TELEGRAM_ALLOWED_USER_IDS}
+      - BEANCOUNT_FILE=/books/main.bean
+      - BEANBOT_OUTPUT_DIR=/books/tgbot
+      - BEANBOT_QUICKADD_CONFIG=/config/quickadd.yaml
+      - DEFAULT_CURRENCY=${DEFAULT_CURRENCY:-CNY}
+      - TZ=${TZ:-Asia/Shanghai}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: always
+    networks:
+      - beancount
+
+networks:
+  beancount:
+    name: ${NETWORK:-beancount}
+    external: true

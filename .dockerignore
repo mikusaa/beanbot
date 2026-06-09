@@ -1,0 +1,7 @@
+.git
+.env
+config/quickadd.yaml
+.venv
+.DS_Store
+__pycache__
+.pytest_cache

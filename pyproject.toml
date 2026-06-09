@@ -1,0 +1,18 @@
+[project]
+name = "beanbot"
+version = "0.1.0"
+description = "Telegram bot for appending Beancount transactions"
+requires-python = ">=3.14"
+dependencies = [
+    "beancount>=3.2.0",
+    "pyyaml>=6.0.3",
+    "python-telegram-bot>=22.5",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
