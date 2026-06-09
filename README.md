@@ -1,23 +1,21 @@
 # beanbot
 
-beanbot 是一个用于写入 [Beancount](https://beancount.github.io/) 账本的私人 Telegram bot。它支持自然语言快记、按钮式录入、最近记录查询、删除 bot 写入记录，以及按规则解析常用账户和消费分类。
-
-这个项目默认按“私人 bot”设计：只有白名单里的 Telegram 用户可以操作；真实 token、用户 ID、账本路径和个人快记规则都应该放在本地配置里，不应提交到 GitHub。
+beanbot 是一个面向个人使用的 Telegram bot，用来把日常账单写入 [Beancount](https://beancount.github.io/) 账本。它可以解析自然语言快记，也提供按钮式的支出、收入和转账录入流程。
 
 ## 功能
 
-- `/add` 或直接发送文本进行自然语言快记。
-- `/expense`、`/income`、`/transfer` 使用按钮录入结构化交易。
-- `/last` 查看最近一笔 bot 写入记录。
-- `/delete` 从最近记录中选择并二次确认删除。
-- `/reload` 重载账户列表和快记配置。
-- 支持补录日期：`今天`、`昨天`、`前天`、`6月8日`、`6/8`、`2026-06-08`、`2026/06/08`。
-- 支持即时优惠：如 `优惠0.5`、`优惠了5毛`、`立减1元`。
-- 支持歧义账户二次确认：例如输入 `卡` 时弹出多个信用卡账户供选择。
+- 自然语言快记：直接发送一句账单，或使用 `/add`。
+- 按钮式录入：通过 `/expense`、`/income`、`/transfer` 分步选择账户。
+- 最近记录：通过 `/last` 查看最近一笔 bot 写入的交易。
+- 删除记录：通过 `/delete` 选择最近交易，二次确认后删除。
+- 配置热重载：修改快记规则后发送 `/reload` 生效。
+- 日期补录：支持 `昨天`、`前天`、`6月8日`、`2026-06-08` 等日期表达。
+- 优惠记录：支持 `优惠0.5`、`优惠了5毛`、`立减1元` 等即时优惠。
+- 歧义账户选择：同一个别名可以配置多个候选账户，由 Telegram 按钮确认。
 
-## 账本结构
+## 账本写入
 
-beanbot 只写入配置的 bot 输出目录，建议挂载到主账本的一个独立子目录，例如：
+beanbot 只写入配置的 bot 输出目录，推荐在主账本旁边单独放一个目录：
 
 ```text
 books/
@@ -29,13 +27,13 @@ books/
       06.bean
 ```
 
-主账本需要 include bot 输出文件，例如：
+主账本中 include bot 生成的文件：
 
 ```beancount
 include "tgbot/*/*.bean"
 ```
 
-bot 写入的交易会带上最少量 metadata：
+普通支出示例：
 
 ```beancount
 2026-06-09 * "Coffee Shop" "latte"
@@ -45,7 +43,7 @@ bot 写入的交易会带上最少量 metadata：
   Expenses:Food:Drinks                                    25 CNY
 ```
 
-如果有即时优惠，会写成三腿交易。默认把优惠记为 `Income:Discount`：
+带即时优惠的支出会写成三腿交易，默认把优惠记到 `Income:Discount`：
 
 ```beancount
 2026-06-09 * "Restaurant" "lunch"
@@ -58,7 +56,7 @@ bot 写入的交易会带上最少量 metadata：
 
 ## 快速开始
 
-复制示例配置：
+复制配置模板：
 
 ```bash
 cp .env.example .env
@@ -77,7 +75,7 @@ DEFAULT_CURRENCY=CNY
 LOG_LEVEL=INFO
 ```
 
-编辑 `config/quickadd.yaml`，把示例账户改成你的 Beancount 账户。配置里的账户必须已经在账本中 `open`，否则启动时会报错。
+编辑 `config/quickadd.yaml`，把示例账户改成你的 Beancount 账户。配置中引用的账户必须已经在账本中 `open`。
 
 启动：
 
@@ -117,7 +115,7 @@ Restaurant lunch 25 card 优惠了5毛
 昨天 咖啡店 拿铁 9.9 信用卡
 ```
 
-如果配置了歧义账户：
+如果 `card` 配置了多个候选账户：
 
 ```yaml
 payment_account_choices:
@@ -132,7 +130,7 @@ payment_account_choices:
 
 ## 快记配置
 
-`config/quickadd.yaml` 支持这些字段：
+快记规则写在 `config/quickadd.yaml`。完整示例见 `config/quickadd.example.yaml`。
 
 ```yaml
 payment_accounts:
@@ -163,11 +161,19 @@ payee_rules:
     expense_account: Expenses:Food:Drinks
 ```
 
-配置修改后可以发送 `/reload`，无需重启容器。
+字段说明：
+
+- `payment_accounts`：确定性的付款账户别名。
+- `payment_account_choices`：需要二次确认的账户别名。
+- `expense_keywords`：根据关键词推断支出分类。
+- `narration_stopwords`：生成 narration 时移除的分类词。
+- `payee_rules`：根据关键词固定交易对象和支出分类。
+
+修改配置后发送 `/reload` 即可生效。
 
 ## 开发
 
-安装依赖后运行测试：
+运行测试：
 
 ```bash
 uv run pytest
@@ -179,37 +185,15 @@ uv run pytest
 docker compose config --quiet
 ```
 
-检查你的 Beancount 主账本：
+检查 Beancount 主账本：
 
 ```bash
 bean-check /path/to/your/beancount/books/main.bean
 ```
 
-## 安全与开源前检查
+## 安全
 
-- 不要提交 `.env`。
-- 不要提交真实 `config/quickadd.yaml`。
-- 不要把 Beancount 账本文件放进这个仓库。
-- token 泄露后，立刻在 BotFather 里 revoke/regenerate。
-- 开源前建议扫描敏感内容：
-
-```bash
-rg -n "[0-9]{8,}:[A-Za-z0-9_-]{20,}|TELEGRAM_BOT_TOKEN|/Users|真实姓名|手机号|身份证" .
-```
-
-仓库只应该提交示例配置：
-
-```text
-.env.example
-config/quickadd.example.yaml
-```
-
-本地真实配置保留但被 `.gitignore` 忽略：
-
-```text
-.env
-config/quickadd.yaml
-```
+beanbot 按私人 bot 设计，只允许 `TELEGRAM_ALLOWED_USER_IDS` 中的用户操作。不要提交 `.env`、真实 `config/quickadd.yaml` 或任何账本数据。若 Telegram bot token 泄露，请在 BotFather 中重新生成。
 
 ## License
 
